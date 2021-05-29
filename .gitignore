@@ -1,0 +1,7 @@
+*.o
+mod1
+
+build
+cmake-*
+.idea
+.DS_Store
