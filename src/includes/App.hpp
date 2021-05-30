@@ -7,24 +7,31 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <exception>
 #include <string>
 
+#include "Shader.hpp"
+#include "Camera.hpp"
+#include "GLFWCallbackWrapper.hpp"
+#include "Model.hpp"
+
 #define WINDOW_NAME "mod1"
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
+
+#define PATH_TO_VERTEX "./resources/vertex.glsl"
+#define PATH_TO_FRAGMENT "./resources/fragment.glsl"
 
 namespace opengl {
 
 	class App {
-	private:
-		GLFWwindow		*window{};
-
-		static void	framebufferSizeCallback(GLFWwindow *window, int width, int height);
-		static void	processInput(GLFWwindow *window);
-
 	public:
+		Camera	*camera{};
+
 		App();
 		~App();
 
@@ -58,6 +65,40 @@ namespace opengl {
 				return "Couldn't initialize glad";
 			}
 		};
+
+		class TextureException : public AppException {
+		public:
+			std::string what() noexcept override {
+				return "Couldn't load texture";
+			}
+		};
+
+	private:
+		GLFWwindow	*window{};
+		GLuint		_vao{};
+		GLuint		_vbo{};
+
+		Shader		*_shader{};
+		Model		_model;
+
+		float	_lastX = WINDOW_WIDTH / 2.0f;
+
+		float	_deltaTime = 0.0f;	// time between current frame and last frame
+		float	_lastTime = 0.0f;
+		int 	_nbFrames{};
+		bool	_firstFrame = true;
+
+		void setupVertexData();
+		void render();
+		void showFps();
+
+		void setCallbackFunctions();
+		void framebufferSizeCallback(GLFWwindow *window, int width, int height);
+		void mousePositionCallback(GLFWwindow *window, double xPos, double yPos);
+		void mouseScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
+		void processInput(GLFWwindow *window);
+
+		friend class GLFWCallbackWrapper;
 	};
 
 } // namespace opengl
