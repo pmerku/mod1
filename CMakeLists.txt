@@ -10,7 +10,12 @@ set(FLAGS "-O3 -Wall -Wextra -Werror -pedantic-errors")
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
-set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG_THROW=1")
+
+if (WIN32)
+    set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG_THROW=1")
+else()
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG_THROW=1")
+endif()
 
 # set cmake output directory
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
@@ -37,6 +42,9 @@ include_directories(glm/glm)
 add_subdirectory(glad)
 include_directories(glad)
 
+# copy resources into build folder
+file(COPY resources DESTINATION ${dir}/build)
+
 # create executable and link the library
 add_executable(mod1 ${SOURCE_FILES} ${HEADER_FILES})
-target_link_libraries(mod1 SDL2 glfw glm glad)
+target_link_libraries(mod1 glfw glm glad)
