@@ -18,6 +18,7 @@
 #include "Camera.hpp"
 #include "GLFWCallbackWrapper.hpp"
 #include "Model.hpp"
+#include "Terrain.hpp"
 
 #define WINDOW_NAME "mod1"
 #define WINDOW_WIDTH 1280
@@ -75,11 +76,12 @@ namespace opengl {
 
 	private:
 		GLFWwindow	*window{};
-		GLuint		_vao{};
-		GLuint		_vbo{};
+//		GLuint		_vao{};
+//		GLuint		_vbo{};
 
 		Shader		*_shader{};
 		Model		_model;
+		Terrain		_terrain;
 
 		float	_lastX = WINDOW_WIDTH / 2.0f;
 
@@ -88,8 +90,9 @@ namespace opengl {
 		int 	_nbFrames{};
 		bool	_firstFrame = true;
 
-		void setupVertexData();
+//		void setupVertexData();
 		void render();
+		void drawTerrain();
 		void showFps();
 
 		void setCallbackFunctions();

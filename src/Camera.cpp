@@ -9,7 +9,7 @@
 using namespace opengl;
 
 Camera::Camera()
-	: _position(glm::vec3(0.0f, 2.0f, 8.0f)),
+	: position(glm::vec3(0.0f, 2.0f, 3.0f)),
 	  _worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
 	  _front(glm::vec3(0.0f, 0.0f, -1.0f)),
 	  _yaw(YAW),
@@ -22,7 +22,7 @@ Camera::Camera()
 }
 
 Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) {
-	_position = glm::vec3(posX, posY, posZ);
+	position = glm::vec3(posX, posY, posZ);
 	_worldUp = glm::vec3(upX, upY, upZ);
 	_yaw = yaw;
 	_pitch = pitch;
@@ -32,20 +32,20 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
 Camera::~Camera() = default;
 
 glm::mat4 Camera::getViewMatrix() {
-	return glm::lookAt(_position, _position + _front, _up);
+	return glm::lookAt(position, position + _front, _up);
 }
 
 void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
 	float velocity = _movementSpeed * deltaTime;
 	if (direction == FORWARD)
-		_position += _front * velocity;
+		position += _front * velocity;
 	if (direction == BACKWARD)
-		_position -= _front * velocity;
+		position -= _front * velocity;
 	if (direction == LEFT)
-		_position -= _right * velocity;
+		position -= _right * velocity;
 	if (direction == RIGHT)
-		_position += _right * velocity;
-	_position.y = 2.0f;
+		position += _right * velocity;
+	position.y = 2.0f;
 }
 
 void Camera::processMouseMovement(float xOffset) {

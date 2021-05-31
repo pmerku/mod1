@@ -25,7 +25,8 @@ namespace opengl {
 
 	class Camera {
 	public:
-		float zoom{};
+		float 		zoom{};
+		glm::vec3	position{};
 
 		Camera();
 		Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
@@ -37,7 +38,6 @@ namespace opengl {
 		void processMouseScroll(float yOffset);
 
 	private:
-		glm::vec3 _position{};
 		glm::vec3 _front{};
 		glm::vec3 _up{};
 		glm::vec3 _right{};
