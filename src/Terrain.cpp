@@ -11,11 +11,9 @@
 
 using namespace opengl;
 
-Terrain::Terrain() {
-	originX = (chunkWidth  * xMapChunks) / 2 - chunkWidth / 2;
+Terrain::Terrain() : mapChunks(std::vector<GLuint>(xMapChunks * yMapChunks)) {
+	originX = (chunkWidth * xMapChunks) / 2 - chunkWidth / 2;
 	originY = (chunkHeight * yMapChunks) / 2 - chunkHeight / 2;
-
-	mapChunks = std::vector<GLuint>(xMapChunks * yMapChunks);
 
 	for (int y = 0; y < yMapChunks; y++) {
 		for (int x = 0; x < xMapChunks; x++) {
@@ -173,7 +171,6 @@ void Terrain::generateMapChunk(GLuint &vao, int xOffset, int yOffset) {
 	std::vector<float> vertices = generateVertices(noiseMap);
 	std::vector<float> normals = generateNormals(indices, vertices);
 	std::vector<float> colors = generateColors(vertices, xOffset, yOffset);
-
 
 	glGenBuffers(3, _vbo);
 	glGenBuffers(1, &_ebo);

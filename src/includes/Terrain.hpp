@@ -32,9 +32,9 @@ namespace opengl {
 		Terrain();
 		~Terrain();
 
-		std::vector<GLuint> mapChunks;
 		const int xMapChunks = 10;
 		const int yMapChunks = 10;
+		std::vector<GLuint> mapChunks;
 
 		const float waterHeight = 0.1;
 		const int chunkWidth = 127;

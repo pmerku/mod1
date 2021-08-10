@@ -81,7 +81,7 @@ namespace opengl {
 
 		Shader		*_shader{};
 		Model		_model;
-		Terrain		_terrain;
+		Terrain		*_terrain;
 
 		float	_lastX = WINDOW_WIDTH / 2.0f;
 

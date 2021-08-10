@@ -16,6 +16,7 @@ App::App() {
 App::~App() {
 	delete _shader;
 	delete camera;
+	delete _terrain;
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
@@ -47,6 +48,8 @@ void App::initialize() {
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+
+	_terrain = new Terrain();
 }
 
 void App::run() {
@@ -102,7 +105,7 @@ void App::render() {
 	_shader->use();
 
 	// create transformations
-	_model.projection = glm::perspective(glm::radians(camera->zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, (float)_terrain.chunkWidth * (_terrain.chunkRenderDistance - 1.2f));
+	_model.projection = glm::perspective(glm::radians(camera->zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, (float)_terrain->chunkWidth * (_terrain->chunkRenderDistance - 1.2f));
 	_model.view = camera->getViewMatrix();
 	_shader->setMat4("u_projection", _model.projection);
 	_shader->setMat4("u_view", _model.view);
@@ -112,20 +115,20 @@ void App::render() {
 }
 
 void App::drawTerrain() {
-	_terrain.gridPosX = (int)(camera->position.x - _terrain.originX) / _terrain.chunkWidth + _terrain.xMapChunks / 2;
-	_terrain.gridPosY = (int)(camera->position.z - _terrain.originY) / _terrain.chunkHeight + _terrain.yMapChunks / 2;
+	_terrain->gridPosX = (int)(camera->position.x - _terrain->originX) / _terrain->chunkWidth + _terrain->xMapChunks / 2;
+	_terrain->gridPosY = (int)(camera->position.z - _terrain->originY) / _terrain->chunkHeight + _terrain->yMapChunks / 2;
 
-	for (int y = 0; y < _terrain.yMapChunks; y++) {
-		for (int x = 0; x < _terrain.xMapChunks; x++) {
-			if (std::abs(_terrain.gridPosX - x) <= _terrain.chunkRenderDistance && (y - _terrain.gridPosY) <= _terrain.chunkRenderDistance) {
+	for (int y = 0; y < _terrain->yMapChunks; y++) {
+		for (int x = 0; x < _terrain->xMapChunks; x++) {
+			if (std::abs(_terrain->gridPosX - x) <= _terrain->chunkRenderDistance && (y - _terrain->gridPosY) <= _terrain->chunkRenderDistance) {
 				_model.model = glm::mat4(1.0f);
 				_model.model = glm::translate(_model.model,
-						glm::vec3(-_terrain.chunkWidth / 2.0 + (_terrain.chunkWidth - 1) * x,
-						0.0, -_terrain.chunkHeight / 2.0 + (_terrain.chunkHeight - 1) * y));
+						glm::vec3(-_terrain->chunkWidth / 2.0 + (_terrain->chunkWidth - 1) * x,
+						0.0, -_terrain->chunkHeight / 2.0 + (_terrain->chunkHeight - 1) * y));
 				_shader->setMat4("u_model", _model.model);
 
-				glBindVertexArray(_terrain.mapChunks[x + y * _terrain.xMapChunks]);
-				glDrawElements(GL_TRIANGLES, _terrain.nIndices, GL_UNSIGNED_INT, 0);
+				glBindVertexArray(_terrain->mapChunks[x + y * _terrain->xMapChunks]);
+				glDrawElements(GL_TRIANGLES, _terrain->nIndices, GL_UNSIGNED_INT, 0);
 			}
 		}
 	}
