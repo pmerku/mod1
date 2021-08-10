@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(mod1 CXX)
 
 # set compiler flags and standard
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(FLAGS "-O3 -Wall -Wextra -Werror -pedantic-errors")
 
 # set debug flags on debug build

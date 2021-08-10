@@ -5,7 +5,6 @@
 #include "App.hpp"
 #include "ErrorUtils.hpp"
 #include "Shader.hpp"
-#include "constants.hpp"
 
 using namespace opengl;
 
@@ -17,8 +16,7 @@ App::App() {
 App::~App() {
 	delete _shader;
 	delete camera;
-	glDeleteVertexArrays(1, &_vao);
-	glDeleteBuffers(1, &_vbo);
+	delete _terrain;
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
@@ -42,21 +40,28 @@ void App::initialize() {
 	}
 	glfwMakeContextCurrent(window);
 	setCallbackFunctions();
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		ERROR_THROW(GladInitException());
 	}
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 	glDepthFunc(GL_LESS);
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+	// TODO remove this after color is fixed
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void App::run() {
 	// load vertex and fragment
 	_shader = new Shader(PATH_TO_VERTEX, PATH_TO_FRAGMENT);
-	setupVertexData();
+	_shader->setVec3("light.ambient", 0.2, 0.2, 0.2);
+	_shader->setVec3("light.diffuse", 0.3, 0.3, 0.3);
+	_shader->setVec3("light.specular", 1.0, 1.0, 1.0);
+	_shader->setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+
+	_terrain = new Terrain();
 
 	while(!glfwWindowShouldClose(window)) {
 		// Measure speed
@@ -74,40 +79,33 @@ void App::run() {
 	}
 }
 
-void App::setupVertexData() {
-	// setup vertex data, buffers and attributes
-	glGenVertexArrays(1, &_vao);
-	glBindVertexArray(_vao);
-
-	glGenBuffers(1, &_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(nullptr));
-	glEnableVertexAttribArray(0);
-
-	// color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-}
-
 void App::render() {
-	// background color
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	// activate shader
 	_shader->use();
 
 	// create transformations
-	_model.projection = glm::perspective(glm::radians(camera->zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
+	_model.projection = glm::perspective(glm::radians(camera->zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f,
+									  (float)_terrain->chunkWidth * (_terrain->chunkRenderDistance - 1.2f));
 	_model.view = camera->getViewMatrix();
+	_shader->setMat4("u_projection", _model.projection);
+	_shader->setMat4("u_view", _model.view);
+	_shader->setVec3("u_viewPos", camera->position);
+
+	drawTerrain();
+}
+
+void App::drawTerrain() {
+	// background color
+	glClearColor(0.53, 0.81, 0.92, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	_model.model = glm::mat4(1.0f);
+	_model.model = glm::rotate(glm::mat4(1.0f), glm::radians(_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+	_model.model = glm::translate(_model.model, glm::vec3(-_terrain->chunkWidth / 2.0 ,0.0, -_terrain->chunkHeight / 2.0));
+	_shader->setMat4("u_model", _model.model);
 
-	_model.mvp = _model.projection * _model.view * _model.model;
-	_shader->setMat4("mvp", _model.mvp);
-
-	glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
+	glBindVertexArray(_terrain->mapChunks[0]);
+	glDrawElements(GL_TRIANGLES, _terrain->nIndices, GL_UNSIGNED_INT, nullptr);
 }
 
 void App::showFps() {
@@ -131,23 +129,11 @@ void App::showFps() {
 void App::setCallbackFunctions() {
 	GLFWCallbackWrapper::setApplication(this);
 	glfwSetFramebufferSizeCallback(window, GLFWCallbackWrapper::framebufferSizeCallback);
-	glfwSetCursorPosCallback(window, GLFWCallbackWrapper::mousePositionCallback);
 	glfwSetScrollCallback(window, GLFWCallbackWrapper::mouseScrollCallback);
 }
 
 void App::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
 	glViewport(0, 0, width, height);
-}
-
-void App::mousePositionCallback(GLFWwindow *window, double xPos, double yPos) {
-	if (_firstFrame) {
-		_lastX = xPos;
-		_firstFrame = false;
-	}
-	float xOffset = xPos - _lastX;
-	_lastX = xPos;
-
-	camera->processMouseMovement(xOffset);
 }
 
 void App::mouseScrollCallback(GLFWwindow *window, double xOffset, double yOffset) {
@@ -158,12 +144,17 @@ void App::processInput(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera->processKeyboard(FORWARD, _deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera->processKeyboard(BACKWARD, _deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera->processKeyboard(LEFT, _deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera->processKeyboard(RIGHT, _deltaTime);
+	// enable wireframe
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// disable wireframe
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		_angle -= 1.0f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		_angle += 1.0f;
+	}
 }

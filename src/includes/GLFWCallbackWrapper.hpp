@@ -20,7 +20,6 @@ namespace opengl {
 		~GLFWCallbackWrapper() = delete;
 
 		static void framebufferSizeCallback(GLFWwindow *window, int width, int height);
-		static void mousePositionCallback(GLFWwindow *window, double xPos, double yPos);
 		static void mouseScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 		static void setApplication(App *app);
 

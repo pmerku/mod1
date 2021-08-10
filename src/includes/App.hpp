@@ -18,6 +18,7 @@
 #include "Camera.hpp"
 #include "GLFWCallbackWrapper.hpp"
 #include "Model.hpp"
+#include "Terrain.hpp"
 
 #define WINDOW_NAME "mod1"
 #define WINDOW_WIDTH 1280
@@ -66,35 +67,26 @@ namespace opengl {
 			}
 		};
 
-		class TextureException : public AppException {
-		public:
-			std::string what() noexcept override {
-				return "Couldn't load texture";
-			}
-		};
-
 	private:
 		GLFWwindow	*window{};
-		GLuint		_vao{};
-		GLuint		_vbo{};
 
 		Shader		*_shader{};
 		Model		_model;
-
-		float	_lastX = WINDOW_WIDTH / 2.0f;
+		Terrain		*_terrain;
 
 		float	_deltaTime = 0.0f;	// time between current frame and last frame
 		float	_lastTime = 0.0f;
 		int 	_nbFrames{};
-		bool	_firstFrame = true;
 
-		void setupVertexData();
+		// terrain rotation
+		float _angle = 0.0f;
+
 		void render();
+		void drawTerrain();
 		void showFps();
 
 		void setCallbackFunctions();
 		void framebufferSizeCallback(GLFWwindow *window, int width, int height);
-		void mousePositionCallback(GLFWwindow *window, double xPos, double yPos);
 		void mouseScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 		void processInput(GLFWwindow *window);
 
