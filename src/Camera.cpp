@@ -9,7 +9,7 @@
 using namespace opengl;
 
 Camera::Camera()
-	: position(glm::vec3(0.0f, 2.0f, 3.0f)),
+	: position(glm::vec3(0.0f, 60.0f, 140.0f)),
 	  _worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
 	  _front(glm::vec3(0.0f, 0.0f, -1.0f)),
 	  _yaw(YAW),
@@ -45,7 +45,7 @@ void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
 		position -= _right * velocity;
 	if (direction == RIGHT)
 		position += _right * velocity;
-	position.y = 2.0f;
+	position.y = 60.0f;
 }
 
 void Camera::processMouseMovement(float xOffset) {
@@ -56,7 +56,8 @@ void Camera::processMouseMovement(float xOffset) {
 }
 
 void Camera::processMouseScroll(float yOffset) {
-	zoom -= yOffset;
+	if (zoom >= 1.0f && zoom <= 45.0f)
+		zoom -= yOffset;
 	if (zoom < 20.0f)
 		zoom = 20.0f;
 	if (zoom > 45.0f)

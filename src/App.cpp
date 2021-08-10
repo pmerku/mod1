@@ -47,9 +47,8 @@ void App::initialize() {
 	}
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 	glDepthFunc(GL_LESS);
-
-	_terrain = new Terrain();
 }
 
 void App::run() {
@@ -60,7 +59,7 @@ void App::run() {
 	_shader->setVec3("light.specular", 1.0, 1.0, 1.0);
 	_shader->setVec3("light.direction", -0.2f, -1.0f, -0.3f);
 
-//	setupVertexData();
+	_terrain = new Terrain();
 
 	while(!glfwWindowShouldClose(window)) {
 		// Measure speed
@@ -78,34 +77,13 @@ void App::run() {
 	}
 }
 
-//void App::setupVertexData() {
-//	// setup vertex data, buffers and attributes
-//	glGenVertexArrays(1, &_vao);
-//	glBindVertexArray(_vao);
-//
-//	glGenBuffers(1, &_vbo);
-//	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-//
-//	// position attribute
-//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(nullptr));
-//	glEnableVertexAttribArray(0);
-//
-//	// color attribute
-//	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-//	glEnableVertexAttribArray(1);
-//}
-
 void App::render() {
-	// background color
-	glClearColor(0.53, 0.81, 0.92, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	// activate shader
 	_shader->use();
 
 	// create transformations
-	_model.projection = glm::perspective(glm::radians(camera->zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, (float)_terrain->chunkWidth * (_terrain->chunkRenderDistance - 1.2f));
+	_model.projection = glm::perspective(glm::radians(camera->zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f,
+									  (float)_terrain->chunkWidth * (_terrain->chunkRenderDistance - 1.2f));
 	_model.view = camera->getViewMatrix();
 	_shader->setMat4("u_projection", _model.projection);
 	_shader->setMat4("u_view", _model.view);
@@ -115,23 +93,16 @@ void App::render() {
 }
 
 void App::drawTerrain() {
-	_terrain->gridPosX = (int)(camera->position.x - _terrain->originX) / _terrain->chunkWidth + _terrain->xMapChunks / 2;
-	_terrain->gridPosY = (int)(camera->position.z - _terrain->originY) / _terrain->chunkHeight + _terrain->yMapChunks / 2;
+	// background color
+	glClearColor(0.53, 0.81, 0.92, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for (int y = 0; y < _terrain->yMapChunks; y++) {
-		for (int x = 0; x < _terrain->xMapChunks; x++) {
-			if (std::abs(_terrain->gridPosX - x) <= _terrain->chunkRenderDistance && (y - _terrain->gridPosY) <= _terrain->chunkRenderDistance) {
-				_model.model = glm::mat4(1.0f);
-				_model.model = glm::translate(_model.model,
-						glm::vec3(-_terrain->chunkWidth / 2.0 + (_terrain->chunkWidth - 1) * x,
-						0.0, -_terrain->chunkHeight / 2.0 + (_terrain->chunkHeight - 1) * y));
-				_shader->setMat4("u_model", _model.model);
+	_model.model = glm::mat4(1.0f);
+	_model.model = glm::translate(_model.model, glm::vec3(-_terrain->chunkWidth / 2.0 ,0.0, -_terrain->chunkHeight / 2.0));
+	_shader->setMat4("u_model", _model.model);
 
-				glBindVertexArray(_terrain->mapChunks[x + y * _terrain->xMapChunks]);
-				glDrawElements(GL_TRIANGLES, _terrain->nIndices, GL_UNSIGNED_INT, 0);
-			}
-		}
-	}
+	glBindVertexArray(_terrain->mapChunks[0]);
+	glDrawElements(GL_TRIANGLES, _terrain->nIndices, GL_UNSIGNED_INT, nullptr);
 }
 
 void App::showFps() {

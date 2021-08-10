@@ -11,15 +11,6 @@
 
 namespace opengl {
 
-	static const GLfloat vertices[] = {
-		-1.0f,  1.0f, -1.0f, 0.5f,  1.0f,  0.0f,
-		1.0f,  1.0f, -1.0f, 0.0f,  1.0f,  0.0f,
-		1.0f,  1.0f,  1.0f, 0.0f,  0.5f,  0.0f,
-		1.0f,  1.0f,  1.0f, 0.5f,  0.0f,  0.0f,
-		-1.0f,  1.0f,  1.0f, 1.0f,  1.0f,  0.0f,
-		-1.0f,  1.0f, -1.0f, 1.0f,  0.0f,  1.0f
-	};
-
 	struct TerrainColor {
 		TerrainColor(float height, glm::vec3 color);
 
@@ -32,8 +23,6 @@ namespace opengl {
 		Terrain();
 		~Terrain();
 
-		const int xMapChunks = 10;
-		const int yMapChunks = 10;
 		std::vector<GLuint> mapChunks;
 
 		const float waterHeight = 0.1;
@@ -41,25 +30,21 @@ namespace opengl {
 		const int chunkHeight = 127;
 
 		const int chunkRenderDistance = 3;
-		int gridPosX = 0;
-		int gridPosY = 0;
-		float originX;
-		float originY;
 		int nIndices;
 
 	private:
-		std::vector<int> generateIndices();
-		std::vector<float> generateNoiseMap(int xOffset, int yOffset);
-		std::vector<float> generateVertices(const std::vector<float> &noiseMap);
-		std::vector<float> generateNormals(const std::vector<int> &indices, const std::vector<float> &vertices);
-		std::vector<float> generateColors(const std::vector<float> &vertices, int xOffset, int yOffset);
-		void generateMapChunk(GLuint &vao, int xOffset, int yOffset);
+		std::vector<int> generateIndices() const;
+		std::vector<float> generateNoiseMap() const;
+		std::vector<float> generateVertices(const std::vector<float> &noiseMap) const;
+		static std::vector<float> generateNormals(const std::vector<int> &indices, const std::vector<float> &vertices);
+		std::vector<float> generateColors(const std::vector<float> &vertices);
+		void generateMapChunk(GLuint &vao);
 
-		glm::vec3 getColor(int r, int g, int b);
-		std::vector<int> getPermutationVector();
+		static glm::vec3 getColor(int r, int g, int b);
+		static std::vector<int> getPermutationVector();
 
-		GLuint _vbo[3]{};
-		GLuint _ebo{};
+		GLuint _vbo[3];
+		GLuint _ebo;
 
 		const int _octaves = 5;
 		const float _meshHeight = 32;

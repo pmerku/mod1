@@ -11,8 +11,8 @@
 namespace opengl {
 
 #define YAW (-90.0f)
-#define PITCH (-18.0f)
-#define SPEED (0.1f)
+#define PITCH (-20.0f)
+#define SPEED (2.0f)
 #define SENSITIVITY (0.01f)
 #define ZOOM (45.0f)
 

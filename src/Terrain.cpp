@@ -11,16 +11,8 @@
 
 using namespace opengl;
 
-Terrain::Terrain() : mapChunks(std::vector<GLuint>(xMapChunks * yMapChunks)) {
-	originX = (chunkWidth * xMapChunks) / 2 - chunkWidth / 2;
-	originY = (chunkHeight * yMapChunks) / 2 - chunkHeight / 2;
-
-	for (int y = 0; y < yMapChunks; y++) {
-		for (int x = 0; x < xMapChunks; x++) {
-			generateMapChunk(mapChunks[x + y * xMapChunks], x, y);
-		}
-	}
-
+Terrain::Terrain() : mapChunks(std::vector<GLuint>(1)) {
+	generateMapChunk(mapChunks[0]);
 	nIndices = chunkWidth * chunkHeight * 6;
 }
 
@@ -32,7 +24,7 @@ Terrain::~Terrain() {
 	glDeleteBuffers(1, &_ebo);
 }
 
-std::vector<int> Terrain::generateIndices() {
+std::vector<int> Terrain::generateIndices() const {
 	std::vector<int> indices;
 
 	for (int y = 0; y < chunkHeight; y++) {
@@ -55,7 +47,7 @@ std::vector<int> Terrain::generateIndices() {
 	return indices;
 }
 
-std::vector<float> Terrain::generateNoiseMap(int xOffset, int yOffset) {
+std::vector<float> Terrain::generateNoiseMap() const {
 	std::vector<float> noiseMap;
 	std::vector<float> normalizedNoiseMap;
 	std::vector<int> permutations = getPermutationVector();
@@ -75,8 +67,8 @@ std::vector<float> Terrain::generateNoiseMap(int xOffset, int yOffset) {
 			freq = 1;
 			float noiseHeight = 0;
 			for (int i = 0; i < _octaves; i++) {
-				float xSample = (x + xOffset * (chunkWidth - 1)) / _noiseScale * freq;
-				float ySample = (y + yOffset * (chunkHeight - 1)) / _noiseScale * freq;
+				float xSample = x / _noiseScale * freq;
+				float ySample = y / _noiseScale * freq;
 
 				float perlinValue = gen::perlinNoise(xSample, ySample, permutations);
 				noiseHeight += perlinValue * amp;
@@ -97,7 +89,7 @@ std::vector<float> Terrain::generateNoiseMap(int xOffset, int yOffset) {
 	return normalizedNoiseMap;
 }
 
-std::vector<float> Terrain::generateVertices(const std::vector<float> &noiseMap) {
+std::vector<float> Terrain::generateVertices(const std::vector<float> &noiseMap) const {
 	std::vector<float> vertices;
 
 	for (int y = 0; y < chunkHeight; y++) {
@@ -135,7 +127,7 @@ std::vector<float> Terrain::generateNormals(const std::vector<int> &indices, con
 	return normals;
 }
 
-std::vector<float> Terrain::generateColors(const std::vector<float> &vertices, int xOffset, int yOffset) {
+std::vector<float> Terrain::generateColors(const std::vector<float> &vertices) {
 	std::vector<float> colors;
 	std::vector<TerrainColor> terrainColor;
 	glm::vec3 color = getColor(255, 255, 255);
@@ -151,9 +143,9 @@ std::vector<float> Terrain::generateColors(const std::vector<float> &vertices, i
 	terrainColor.push_back(TerrainColor(1.00, getColor(255, 255, 255)));
 
 	for (int i = 1; i < vertices.size(); i += 3) {
-		for (int j = 0; j < terrainColor.size(); j++) {
-			if (vertices[i] <= terrainColor[j]._height * _meshHeight) {
-				color = terrainColor[j]._color;
+		for (auto & terrain : terrainColor) {
+			if (vertices[i] <= terrain._height * _meshHeight) {
+				color = terrain._color;
 				break;
 			}
 		}
@@ -165,12 +157,12 @@ std::vector<float> Terrain::generateColors(const std::vector<float> &vertices, i
 	return colors;
 }
 
-void Terrain::generateMapChunk(GLuint &vao, int xOffset, int yOffset) {
-	std::vector<int> indices = generateIndices();
-	std::vector<float> noiseMap = generateNoiseMap(xOffset, yOffset);
+void Terrain::generateMapChunk(GLuint &vao) {
+	std::vector<float> noiseMap = generateNoiseMap();
 	std::vector<float> vertices = generateVertices(noiseMap);
+	std::vector<int> indices = generateIndices();
 	std::vector<float> normals = generateNormals(indices, vertices);
-	std::vector<float> colors = generateColors(vertices, xOffset, yOffset);
+	std::vector<float> colors = generateColors(vertices);
 
 	glGenBuffers(3, _vbo);
 	glGenBuffers(1, &_ebo);
@@ -183,19 +175,19 @@ void Terrain::generateMapChunk(GLuint &vao, int xOffset, int yOffset) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)nullptr);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo[1]);
 	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), &normals[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)nullptr);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
 	glEnableVertexAttribArray(1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo[2]);
 	glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), &colors[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)nullptr);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
 	glEnableVertexAttribArray(2);
 }
 

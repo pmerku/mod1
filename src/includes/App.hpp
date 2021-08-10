@@ -67,17 +67,8 @@ namespace opengl {
 			}
 		};
 
-		class TextureException : public AppException {
-		public:
-			std::string what() noexcept override {
-				return "Couldn't load texture";
-			}
-		};
-
 	private:
 		GLFWwindow	*window{};
-//		GLuint		_vao{};
-//		GLuint		_vbo{};
 
 		Shader		*_shader{};
 		Model		_model;
@@ -90,7 +81,6 @@ namespace opengl {
 		int 	_nbFrames{};
 		bool	_firstFrame = true;
 
-//		void setupVertexData();
 		void render();
 		void drawTerrain();
 		void showFps();
