@@ -40,7 +40,6 @@ void App::initialize() {
 	}
 	glfwMakeContextCurrent(window);
 	setCallbackFunctions();
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		ERROR_THROW(GladInitException());
@@ -49,6 +48,9 @@ void App::initialize() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glDepthFunc(GL_LESS);
+
+	// TODO remove this after color is fixed
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void App::run() {
@@ -98,6 +100,7 @@ void App::drawTerrain() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	_model.model = glm::mat4(1.0f);
+	_model.model = glm::rotate(glm::mat4(1.0f), glm::radians(_angle), glm::vec3(0.0f, 1.0f, 0.0f));
 	_model.model = glm::translate(_model.model, glm::vec3(-_terrain->chunkWidth / 2.0 ,0.0, -_terrain->chunkHeight / 2.0));
 	_shader->setMat4("u_model", _model.model);
 
@@ -126,23 +129,11 @@ void App::showFps() {
 void App::setCallbackFunctions() {
 	GLFWCallbackWrapper::setApplication(this);
 	glfwSetFramebufferSizeCallback(window, GLFWCallbackWrapper::framebufferSizeCallback);
-	glfwSetCursorPosCallback(window, GLFWCallbackWrapper::mousePositionCallback);
 	glfwSetScrollCallback(window, GLFWCallbackWrapper::mouseScrollCallback);
 }
 
 void App::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
 	glViewport(0, 0, width, height);
-}
-
-void App::mousePositionCallback(GLFWwindow *window, double xPos, double yPos) {
-	if (_firstFrame) {
-		_lastX = xPos;
-		_firstFrame = false;
-	}
-	float xOffset = xPos - _lastX;
-	_lastX = xPos;
-
-	camera->processMouseMovement(xOffset);
 }
 
 void App::mouseScrollCallback(GLFWwindow *window, double xOffset, double yOffset) {
@@ -160,12 +151,10 @@ void App::processInput(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera->processKeyboard(FORWARD, _deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera->processKeyboard(BACKWARD, _deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera->processKeyboard(LEFT, _deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera->processKeyboard(RIGHT, _deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		_angle -= 1.0f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		_angle += 1.0f;
+	}
 }

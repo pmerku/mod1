@@ -4,6 +4,7 @@ layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec3 aColor;
 layout (location = 3) in vec3 aOffset;
 
+flat out vec3 flatColor;
 out vec3 Color;
 
 struct Light {
@@ -47,6 +48,7 @@ void main() {
 
     vec3 lighting = calculateLighting(Normal, FragPos);
     Color = aColor * lighting;
+    flatColor = Color;
 
     gl_Position = u_projection * u_view * u_model * vec4(aPos + aOffset, 1.0);
 }

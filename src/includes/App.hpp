@@ -74,12 +74,12 @@ namespace opengl {
 		Model		_model;
 		Terrain		*_terrain;
 
-		float	_lastX = WINDOW_WIDTH / 2.0f;
-
 		float	_deltaTime = 0.0f;	// time between current frame and last frame
 		float	_lastTime = 0.0f;
 		int 	_nbFrames{};
-		bool	_firstFrame = true;
+
+		// terrain rotation
+		float _angle = 0.0f;
 
 		void render();
 		void drawTerrain();
@@ -87,7 +87,6 @@ namespace opengl {
 
 		void setCallbackFunctions();
 		void framebufferSizeCallback(GLFWwindow *window, int width, int height);
-		void mousePositionCallback(GLFWwindow *window, double xPos, double yPos);
 		void mouseScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 		void processInput(GLFWwindow *window);
 

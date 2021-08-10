@@ -11,10 +11,6 @@ void GLFWCallbackWrapper::framebufferSizeCallback(GLFWwindow *window, int width,
 	_app->framebufferSizeCallback(window, width, height);
 }
 
-void GLFWCallbackWrapper::mousePositionCallback(GLFWwindow *window, double xPos, double yPos) {
-	_app->mousePositionCallback(window, xPos, yPos);
-}
-
 void GLFWCallbackWrapper::mouseScrollCallback(GLFWwindow *window, double xOffset, double yOffset) {
 	_app->mouseScrollCallback(window, xOffset, yOffset);
 }

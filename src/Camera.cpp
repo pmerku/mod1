@@ -14,18 +14,8 @@ Camera::Camera()
 	  _front(glm::vec3(0.0f, 0.0f, -1.0f)),
 	  _yaw(YAW),
 	  _pitch(PITCH),
-	  _movementSpeed(SPEED),
-	  _mouseSensitivity(SENSITIVITY),
 	  zoom(ZOOM)
 {
-	updateCameraVectors();
-}
-
-Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) {
-	position = glm::vec3(posX, posY, posZ);
-	_worldUp = glm::vec3(upX, upY, upZ);
-	_yaw = yaw;
-	_pitch = pitch;
 	updateCameraVectors();
 }
 
@@ -33,26 +23,6 @@ Camera::~Camera() = default;
 
 glm::mat4 Camera::getViewMatrix() {
 	return glm::lookAt(position, position + _front, _up);
-}
-
-void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
-	float velocity = _movementSpeed * deltaTime;
-	if (direction == FORWARD)
-		position += _front * velocity;
-	if (direction == BACKWARD)
-		position -= _front * velocity;
-	if (direction == LEFT)
-		position -= _right * velocity;
-	if (direction == RIGHT)
-		position += _right * velocity;
-	position.y = 60.0f;
-}
-
-void Camera::processMouseMovement(float xOffset) {
-	xOffset *= _mouseSensitivity;
-	_yaw += xOffset;
-
-	updateCameraVectors();
 }
 
 void Camera::processMouseScroll(float yOffset) {
