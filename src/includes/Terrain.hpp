@@ -23,13 +23,13 @@ namespace opengl {
 		Terrain();
 		~Terrain();
 
-		std::vector<GLuint> mapChunks;
+		std::vector<GLuint> map;
 
 		const float waterHeight = 0.1;
-		const int chunkWidth = 127;
-		const int chunkHeight = 127;
+		const int width = 120;
+		const int height = 120;
 
-		const int chunkRenderDistance = 3;
+		const int renderDistance = 5;
 		int nIndices;
 
 	private:
@@ -37,7 +37,7 @@ namespace opengl {
 		std::vector<float> generateNoiseMap() const;
 		std::vector<float> generateVertices(const std::vector<float> &noiseMap) const;
 		static std::vector<float> generateNormals(const std::vector<int> &indices, const std::vector<float> &vertices);
-		std::vector<float> generateColors(const std::vector<float> &vertices);
+		std::vector<float> generateColors(const std::vector<float> &vertices) const;
 		void generateMapChunk(GLuint &vao);
 
 		static glm::vec3 getColor(int r, int g, int b);
