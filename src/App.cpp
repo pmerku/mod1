@@ -101,11 +101,11 @@ void App::render() {
 
 void App::drawTerrain() {
 	// background color
-	glClearColor(0.53, 0.81, 0.92, 1.0f);
+	glClearColor(0.8f, 0.8f, 0.8f, 0.8f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	_model.model = glm::mat4(1.0f);
-	_model.model = glm::rotate(glm::mat4(1.0f), glm::radians(_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+	_model.model = glm::rotate(_model.model, glm::radians(_angle), glm::vec3(0.0f, 1.0f, 0.0f));
 	_model.model = glm::translate(_model.model, glm::vec3(-_terrain->width / 2.0 , 0.0, -_terrain->height / 2.0));
 	_shader->setMat4("model", _model.model);
 
@@ -134,6 +134,7 @@ void App::showFps() {
 void App::setCallbackFunctions() {
 	GLFWCallbackWrapper::setApplication(this);
 	glfwSetFramebufferSizeCallback(window, GLFWCallbackWrapper::framebufferSizeCallback);
+	glfwSetCursorPosCallback(window, GLFWCallbackWrapper::mousePositionCallback);
 	glfwSetScrollCallback(window, GLFWCallbackWrapper::mouseScrollCallback);
 }
 
@@ -143,6 +144,16 @@ void App::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
 
 void App::mouseScrollCallback(GLFWwindow *window, double xOffset, double yOffset) {
 	camera->processMouseScroll(yOffset);
+}
+
+void App::mousePositionCallback(GLFWwindow *window, double xPos, double yPos) {
+	if (_firstFrame) {
+		_lastX = xPos;
+		_firstFrame = false;
+	}
+	_xOffset = xPos - _lastX;
+	_lastX = xPos;
+	_xOffset *= camera->mouseSensitivity;
 }
 
 void App::processInput(GLFWwindow *window) {
@@ -156,10 +167,14 @@ void App::processInput(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	// model rotation
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		_angle -= 1.0f;
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		_angle += 1.0f;
+	}
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		_angle += _xOffset;
 	}
 }

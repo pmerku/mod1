@@ -47,10 +47,10 @@ namespace opengl {
 		GLuint _ebo;
 
 		const int _octaves = 5;
-		const float _meshHeight = 32;
-		const float _noiseScale = 64;
-		const float _persistence = 0.5;
-		const float _lacunarity = 2;
+		const float _meshHeight = 32.0f;
+		const float _noiseScale = 64.0f;
+		const float _persistence = 0.5f;
+		const float _lacunarity = 2.0f;
 	};
 
 } // namespace opengl

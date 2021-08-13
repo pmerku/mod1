@@ -79,7 +79,10 @@ namespace opengl {
 		int 	_nbFrames{};
 
 		// terrain rotation
-		float _angle = 0.0f;
+		bool	_firstFrame = true;
+		float	_lastX = WINDOW_WIDTH / 2.0f;
+		float	_angle = 0.0f;
+		float 	_xOffset;
 
 		void render();
 		void drawTerrain();
@@ -87,6 +90,7 @@ namespace opengl {
 
 		void setCallbackFunctions();
 		void framebufferSizeCallback(GLFWwindow *window, int width, int height);
+		void mousePositionCallback(GLFWwindow *window, double xPos, double yPos);
 		void mouseScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 		void processInput(GLFWwindow *window);
 

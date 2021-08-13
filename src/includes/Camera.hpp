@@ -12,12 +12,14 @@ namespace opengl {
 
 #define YAW (-90.0f)
 #define PITCH (-20.0f)
+#define SENSITIVITY (0.1f)
 #define ZOOM (45.0f)
 
 	class Camera {
 	public:
 		float 		zoom{};
 		glm::vec3	position{};
+		float		mouseSensitivity{};
 
 		Camera();
 		~Camera();

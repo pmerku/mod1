@@ -10,6 +10,7 @@ using namespace opengl;
 
 Camera::Camera()
 	: position(glm::vec3(0.0f, 60.0f, 140.0f)),
+	  mouseSensitivity(SENSITIVITY),
 	  _worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
 	  _front(glm::vec3(0.0f, 0.0f, -1.0f)),
 	  _yaw(YAW),
