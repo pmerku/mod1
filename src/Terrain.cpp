@@ -4,20 +4,19 @@
 
 #include "Terrain.hpp"
 
-#include <glm/glm.hpp>
 #include <cmath>
 
 #include "PerlinNoise.hpp"
 
 using namespace opengl;
 
-Terrain::Terrain() : mapChunks(std::vector<GLuint>(1)) {
-	generateMapChunk(mapChunks[0]);
-	nIndices = chunkWidth * chunkHeight * 6;
+Terrain::Terrain() : map(std::vector<GLuint>(1)) {
+	generateMapChunk(map[0]);
+	nIndices = width * height * 6;
 }
 
 Terrain::~Terrain() {
-	for (unsigned int & mapChunk : mapChunks) {
+	for (unsigned int & mapChunk : map) {
 		glDeleteVertexArrays(1, &mapChunk);
 	}
 	glDeleteBuffers(3, _vbo);
@@ -27,19 +26,19 @@ Terrain::~Terrain() {
 std::vector<int> Terrain::generateIndices() const {
 	std::vector<int> indices;
 
-	for (int y = 0; y < chunkHeight; y++) {
-		for (int x = 0; x < chunkWidth; x++) {
-			int pos = x + y * chunkWidth;
-			if (x == chunkWidth - 1 || y == chunkHeight - 1) {
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			int pos = x + y * width;
+			if (x == width - 1 || y == height - 1) {
 				continue;
 			} else {
 				// Top triangle
-				indices.push_back(pos + chunkWidth);
+				indices.push_back(pos + width);
 				indices.push_back(pos);
-				indices.push_back(pos + chunkWidth + 1);
+				indices.push_back(pos + width + 1);
 				// Bottom triangle
 				indices.push_back(pos + 1);
-				indices.push_back(pos + chunkWidth + 1);
+				indices.push_back(pos + width + 1);
 				indices.push_back(pos);
 			}
 		}
@@ -61,8 +60,8 @@ std::vector<float> Terrain::generateNoiseMap() const {
 		amp *= _persistence;
 	}
 
-	for (int y = 0; y < chunkHeight; y++) {
-		for (int x = 0; x < chunkWidth; x++) {
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
 			amp = 1;
 			freq = 1;
 			float noiseHeight = 0;
@@ -80,9 +79,9 @@ std::vector<float> Terrain::generateNoiseMap() const {
 		}
 	}
 
-	for (int y = 0; y < chunkHeight; y++) {
-		for (int x = 0; x < chunkWidth; x++) {
-			normalizedNoiseMap.push_back((noiseMap[x + y * chunkWidth] + 1) / maxPossibleHeight);
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			normalizedNoiseMap.push_back((noiseMap[x + y * width] + 1) / maxPossibleHeight);
 		}
 	}
 
@@ -92,10 +91,10 @@ std::vector<float> Terrain::generateNoiseMap() const {
 std::vector<float> Terrain::generateVertices(const std::vector<float> &noiseMap) const {
 	std::vector<float> vertices;
 
-	for (int y = 0; y < chunkHeight; y++) {
-		for (int x = 0; x < chunkWidth; x++) {
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
 			vertices.push_back(x);
-			float easedNoise = std::pow(noiseMap[x + y * chunkWidth] * 1.1, 3);
+			float easedNoise = std::pow(noiseMap[x + y * width] * 1.1, 3);
 			vertices.push_back(std::fmax(easedNoise * _meshHeight, waterHeight * 0.5 * _meshHeight));
 			vertices.push_back(y);
 		}
@@ -127,20 +126,20 @@ std::vector<float> Terrain::generateNormals(const std::vector<int> &indices, con
 	return normals;
 }
 
-std::vector<float> Terrain::generateColors(const std::vector<float> &vertices) {
+std::vector<float> Terrain::generateColors(const std::vector<float> &vertices) const {
 	std::vector<float> colors;
 	std::vector<TerrainColor> terrainColor;
 	glm::vec3 color = getColor(255, 255, 255);
 
-	terrainColor.push_back(TerrainColor(waterHeight * 0.5, getColor(60, 95, 190)));
-	terrainColor.push_back(TerrainColor(waterHeight, getColor(60, 100, 190)));
+	terrainColor.emplace_back(waterHeight * 0.5f, getColor(60, 95, 190));
+	terrainColor.emplace_back(waterHeight, getColor(60, 100, 190));
 
-	terrainColor.push_back(TerrainColor(0.15, getColor(210, 215, 130)));
-	terrainColor.push_back(TerrainColor(0.30, getColor(95, 165, 30)));
-	terrainColor.push_back(TerrainColor(0.40, getColor(65, 115, 20)));
-	terrainColor.push_back(TerrainColor(0.50, getColor(90, 65, 60)));
-	terrainColor.push_back(TerrainColor(0.80, getColor(75, 60, 55)));
-	terrainColor.push_back(TerrainColor(1.00, getColor(255, 255, 255)));
+	terrainColor.emplace_back(0.15, getColor(210, 215, 130));
+	terrainColor.emplace_back(0.30, getColor(95, 165, 30));
+	terrainColor.emplace_back(0.40, getColor(65, 115, 20));
+	terrainColor.emplace_back(0.50, getColor(90, 65, 60));
+	terrainColor.emplace_back(0.80, getColor(75, 60, 55));
+	terrainColor.emplace_back(1.00, getColor(255, 255, 255));
 
 	for (int i = 1; i < vertices.size(); i += 3) {
 		for (auto & terrain : terrainColor) {
@@ -169,11 +168,12 @@ void Terrain::generateMapChunk(GLuint &vao) {
 	glGenVertexArrays(1, &vao);
 
 	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, _vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, _vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
 	glEnableVertexAttribArray(0);

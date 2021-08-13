@@ -48,14 +48,14 @@ void App::initialize() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glDepthFunc(GL_LESS);
-
-	// TODO remove this after color is fixed
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void App::run() {
 	// load vertex and fragment
 	_shader = new Shader(PATH_TO_VERTEX, PATH_TO_FRAGMENT);
+	_shader->use();
+
+	// light parameters
 	_shader->setVec3("light.ambient", 0.2, 0.2, 0.2);
 	_shader->setVec3("light.diffuse", 0.3, 0.3, 0.3);
 	_shader->setVec3("light.specular", 1.0, 1.0, 1.0);
@@ -84,12 +84,17 @@ void App::render() {
 	_shader->use();
 
 	// create transformations
-	_model.projection = glm::perspective(glm::radians(camera->zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f,
-									  (float)_terrain->chunkWidth * (_terrain->chunkRenderDistance - 1.2f));
+	_model.projection =
+			glm::perspective(
+			glm::radians(camera->zoom),
+			(float)WINDOW_WIDTH / (float)WINDOW_HEIGHT,
+			0.1f,
+			(float)_terrain->width * _terrain->renderDistance);
+
 	_model.view = camera->getViewMatrix();
-	_shader->setMat4("u_projection", _model.projection);
-	_shader->setMat4("u_view", _model.view);
-	_shader->setVec3("u_viewPos", camera->position);
+	_shader->setMat4("projection", _model.projection);
+	_shader->setMat4("view", _model.view);
+	_shader->setVec3("viewPos", camera->position);
 
 	drawTerrain();
 }
@@ -101,10 +106,10 @@ void App::drawTerrain() {
 
 	_model.model = glm::mat4(1.0f);
 	_model.model = glm::rotate(glm::mat4(1.0f), glm::radians(_angle), glm::vec3(0.0f, 1.0f, 0.0f));
-	_model.model = glm::translate(_model.model, glm::vec3(-_terrain->chunkWidth / 2.0 ,0.0, -_terrain->chunkHeight / 2.0));
-	_shader->setMat4("u_model", _model.model);
+	_model.model = glm::translate(_model.model, glm::vec3(-_terrain->width / 2.0 , 0.0, -_terrain->height / 2.0));
+	_shader->setMat4("model", _model.model);
 
-	glBindVertexArray(_terrain->mapChunks[0]);
+	glBindVertexArray(_terrain->map[0]);
 	glDrawElements(GL_TRIANGLES, _terrain->nIndices, GL_UNSIGNED_INT, nullptr);
 }
 
@@ -145,10 +150,10 @@ void App::processInput(GLFWwindow *window) {
 		glfwSetWindowShouldClose(window, true);
 
 	// enable wireframe
-	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// disable wireframe
-	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
