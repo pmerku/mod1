@@ -25,3 +25,6 @@ cmake .. && make
 ```
 
 Both ways will build the executable in the `build` folder at the root of the repo.
+
+## Screenshots
+![alt tex](https://github.com/pmerku/mod1/raw/pmerku_branch/images/mod1.png "mod1 png")
