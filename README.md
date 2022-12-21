@@ -1,6 +1,6 @@
 # mod1
 
-A terrestrial and hydrodynamic simulator (currently without water :P)
+Small terrain renderer
 
 ## Clone instructions
 This repo contains submodules, so clone with `--recursive`.
